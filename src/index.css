@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Adding a custom subtle background for the whole app */
+body {
+  background-color: #f8fafc; /* A very light slate/gray */
+  color: #0f172a;
+}
