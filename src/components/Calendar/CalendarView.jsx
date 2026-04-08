@@ -1,24 +1,19 @@
-import React, { useState } from 'react';
-import { addMonths, subMonths, format, startOfToday } from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import CalendarGrid from './CalendarGrid';
-import NotesSidebar from '../Modal/NotesSidebar'; 
-import ScrollFrame from '../Layout/ScrollFrame';
+import React, { useState, useEffect, useRef } from 'react';
+import { addMonths, subMonths, format, startOfToday, eachDayOfInterval } from 'date-fns';
 import { getThemeForMonth } from '../../utils/constants';
 import { checkIsBefore } from '../../utils/calendar';
 import { useNotes } from '../../hooks/useNotes';
-import bhrtImage from '../../assets/bhrt.jpg';
+import { getSparkForDate } from '../../utils/sparks';
+
+// Import your Presenter components
+import DesktopView from './DesktopView';
+import MobileView from './MobileView';
 
 const CalendarView = () => {
-  // --- DEFAULT SELECTION LOGIC ---
-  // startOfToday() ensures we don't have weird timestamp issues
   const today = startOfToday(); 
-  
-  // Initialize the calendar view to the current month/year
   const [currentDate, setCurrentDate] = useState(today); 
-  
-  // Initialize the selected date to Today
   const [singleDate, setSingleDate] = useState(today);
+  
   
   const theme = getThemeForMonth(currentDate.getMonth());
   const { notes, saveNote } = useNotes();
@@ -26,19 +21,97 @@ const CalendarView = () => {
   const [selectionRange, setSelectionRange] = useState({ start: null, end: null });
   const [hoverDate, setHoverDate] = useState(null);
 
+  const [tasks, setTasks] = useState([]);
+  const [newTask, setNewTask] = useState('');
+  const [text, setText] = useState('');
+  const [thought,setThought] = useState("");
+  
+  const isInitialMount = useRef(true);
+
   const activeNoteDate = singleDate || selectionRange.start || null;
+  const dateKey = activeNoteDate ? format(activeNoteDate, 'yyyy-MM-dd') : null;
+
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
 
+  // Load Data
+  useEffect(() => {
+    isInitialMount.current = true;
+    if (dateKey) {
+      setText(notes[dateKey] || '');
+      const savedTasks = localStorage.getItem(`tasks-${dateKey}`);
+      setTasks(savedTasks ? JSON.parse(savedTasks) : []);
+    } else {
+      setText('');
+      setTasks([]);
+    }
+  }, [dateKey, notes]);
+
+  // Auto-Save Data
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    if (dateKey) {
+      const saveTimer = setTimeout(() => {
+        saveNote(dateKey, text);
+      }, 800);
+      return () => clearTimeout(saveTimer);
+    }
+  }, [text, dateKey, saveNote]);
+
+  useEffect(() => {
+    // Sets a fresh spark whenever the selected date changes
+    if (activeNoteDate) {
+      setThought(getSparkForDate(activeNoteDate));
+    }
+  }, [activeNoteDate]);
+
+  // Task Handlers
+  const addTaskHandler = (e) => {
+    if (e.key === 'Enter' && newTask.trim()) {
+      const taskId = Date.now();
+      const newTaskObj = { id: taskId, text: newTask, done: false };
+      
+      if (selectionRange?.start && selectionRange?.end) {
+        const datesInRange = eachDayOfInterval({ start: selectionRange.start, end: selectionRange.end });
+        datesInRange.forEach(date => {
+          const key = format(date, 'yyyy-MM-dd');
+          const existingTasks = localStorage.getItem(`tasks-${key}`);
+          let tasksArray = existingTasks ? JSON.parse(existingTasks) : [];
+          tasksArray.push(newTaskObj);
+          localStorage.setItem(`tasks-${key}`, JSON.stringify(tasksArray));
+        });
+        if (dateKey) setTasks(prev => [...prev, newTaskObj]);
+      } else if (dateKey) {
+        const updated = [...tasks, newTaskObj];
+        setTasks(updated);
+        localStorage.setItem(`tasks-${dateKey}`, JSON.stringify(updated));
+      }
+      setNewTask('');
+    }
+  };
+
+  const toggleTask = (id) => {
+    const updated = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
+    setTasks(updated);
+    if (dateKey) localStorage.setItem(`tasks-${dateKey}`, JSON.stringify(updated));
+  };
+
+  const deleteTask = (id) => {
+    const updated = tasks.filter(t => t.id !== id);
+    setTasks(updated);
+    if (dateKey) localStorage.setItem(`tasks-${dateKey}`, JSON.stringify(updated));
+  };
+
   const handleDayClick = (day, isRangeModifier) => {
     const isActivelySelectingRange = selectionRange.start && !selectionRange.end;
-    
     if (!isRangeModifier && !isActivelySelectingRange) {
       setSingleDate(day);
       setSelectionRange({ start: null, end: null }); 
       return;
     }
-
     setSingleDate(null); 
     if (!selectionRange.start || (selectionRange.start && selectionRange.end)) {
       setSelectionRange({ start: day, end: null });
@@ -51,59 +124,41 @@ const CalendarView = () => {
     }
   };
 
+  const calendarProps = {
+    currentDate, theme, singleDate, selectionRange, hoverDate,
+    onDayClick: handleDayClick,
+    onDayHover: (day) => selectionRange.start && !selectionRange.end && setHoverDate(day),
+    prevMonth, nextMonth
+  };
+
+const dashboardProps = {
+    activeDate: activeNoteDate, 
+    text, 
+    setText, 
+    tasks, 
+    thought,
+    toggleTask, 
+    deleteTask, 
+    newTask, 
+    setNewTask, 
+    addTask: addTaskHandler, 
+    theme,
+    // NEW: Add this line so the sidebar can control the calendar!
+    onDateSelect: (newDate) => {
+      setCurrentDate(newDate); // Shifts the whole calendar to that month
+      handleDayClick(newDate, false); // Selects the specific day
+    }
+  };  
+
   return (
-    <div className="w-[600px] flex flex-col">
-      <ScrollFrame>
-        
-        {/* UPPER PART: FIXED IMAGE */}
-        <div className="relative w-full h-[280px] overflow-hidden">
-          <img src={bhrtImage} alt="Theme" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#f4e4bc] to-transparent"></div>
-          
-          <div className="absolute bottom-4 left-8 right-8 flex justify-between items-end">
-            <div className="text-[#3e2723]">
-              <h2 className="text-5xl font-serif font-black uppercase tracking-tighter leading-none">
-                {format(currentDate, 'MMMM')}
-              </h2>
-              <p className="text-[12px] font-bold text-[#8b0000] tracking-[0.8em]">{format(currentDate, 'yyyy')}</p>
-            </div>
-            <div className="flex gap-2 mb-1">
-              <button onClick={prevMonth} className="text-[#3e2723] hover:scale-125 transition-transform">
-                <ChevronLeft size={24} />
-              </button>
-              <button onClick={nextMonth} className="text-[#3e2723] hover:scale-125 transition-transform">
-                <ChevronRight size={24} />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* LOWER PART: GRID & AUTO-SAVING NOTES */}
-        <div className="w-full h-[340px] flex flex-row items-start px-8 pt-4 pb-8">
-          
-          <div className="w-[50%] pr-8 border-r border-[#8b0000]/10 h-full flex flex-col justify-center">
-            <CalendarGrid 
-              currentDate={currentDate} 
-              theme={theme} 
-              singleDate={singleDate}
-              selectionRange={selectionRange}
-              hoverDate={hoverDate}
-              onDayClick={handleDayClick} 
-              onDayHover={(day) => selectionRange.start && !selectionRange.end && setHoverDate(day)}
-            />
-          </div>
-
-          <div className="w-[50%] pl-8 h-full">
-            <NotesSidebar 
-              activeDate={activeNoteDate} 
-              notes={notes}
-              saveNote={saveNote}
-            />
-          </div>
-
-        </div>
-
-      </ScrollFrame>
+    /* THE FIX: 
+      Changed to min-h-screen, items-center, justify-center, relative, and added padding.
+      This ensures the jagged calendar body AND its floating shards stay perfectly centered 
+      and don't clip off the edges of the monitor.
+    */
+    <div className="w-full min-h-screen flex items-center justify-center relative p-4 md:p-8">
+      <DesktopView calendarProps={calendarProps} dashboardProps={dashboardProps}/>
+      <MobileView calendarProps={calendarProps} dashboardProps={dashboardProps}/>
     </div>
   );
 };

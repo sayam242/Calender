@@ -14,29 +14,52 @@ const CalendarDay = ({ day, currentMonth, theme, singleDate, selectionRange, hov
   const isRangeHighlighted = isStart || isEnd || isSelectedRange || isHoverRange;
   
   // Highlight spans the background of the text area only
-  const lightBgClass = theme?.hover ? theme.hover.replace('hover:', '') : 'bg-[#e9dcc0]';
+  const lightBgClass = theme?.hover ? theme.hover.replace('hover:', '') : 'bg-transparent';
 
   return (
     <div
       onClick={(e) => onClick(day, e.ctrlKey || e.metaKey)}
       onMouseEnter={() => onHover(day)}
       onContextMenu={(e) => { e.preventDefault(); onClick(day, true); }}
-      // Borders and fixed min-height removed for a clean "floating" look
-      className={`py-2 transition-all cursor-pointer flex flex-col items-center justify-center select-none rounded-md
-        ${isRangeHighlighted ? lightBgClass : 'hover:bg-[#8b0000]/5'}
+      className={`
+        h-9 md:h-12 p-0.5 md:p-2 transition-all cursor-pointer flex flex-col items-center justify-center select-none 
+        border rounded-md relative group
+        ${isRangeHighlighted ? `${lightBgClass}` : 'bg-white hover:bg-white/80'}
+        ${!isCurrentMonth ? 'opacity-30 border-dashed' : 'border-solid'}
       `}
+      style={{
+        // Dynamic border color based on theme
+        borderColor: isRangeHighlighted ? `${theme.primaryHex}66` : `${theme.primaryHex}15`,
+        backgroundColor: !isCurrentMonth ? `${theme.primaryHex}05` : undefined
+      }}
     >
+      {/* Day Number */}
       <span 
         className={`
-          text-xs w-7 h-7 flex items-center justify-center rounded-full transition-all
-          ${isToday && !isRangeHighlighted && !isSingle ? 'border border-[#3e2723] font-bold' : ''}
-          ${(isSingle || isStart || isEnd) ? `${theme.primary} text-white font-bold shadow-sm scale-110` : ''}
+          text-[10px] md:text-sm font-bold w-5 h-5 md:w-6 md:h-8 flex items-center justify-center rounded-full transition-all
+          ${(isSingle || isStart || isEnd) ? `${theme.primary} text-white font-black shadow-md scale-110` : ''}
           ${isRangeHighlighted && !isStart && !isEnd ? `${theme.text} font-bold` : 'text-[#3e2723]'}
-          ${!isCurrentMonth && !isRangeHighlighted && !isSingle ? 'opacity-10' : ''}
+          ${!isCurrentMonth && 'opacity-40'}
         `}
+        style={{
+          // Today's indicator styling
+          border: isToday && !isRangeHighlighted && !isSingle ? `1.5px solid ${theme.primaryHex}` : undefined,
+          backgroundColor: isToday && !isRangeHighlighted && !isSingle ? `${theme.primaryHex}15` : undefined
+        }}
       >
         {formatDate(day, 'd')}
       </span>
+
+      {/* Subtle indicator dot for days with notes */}
+      {isCurrentMonth && (
+        <div 
+          className="absolute bottom-0.5 md:bottom-1 w-1 h-1 md:w-1.5 md:h-1.5 rounded-full transition-all"
+          style={{
+            backgroundColor: isSingle || isStart || isEnd ? '#ffffff' : `${theme.primaryHex}40`,
+            boxShadow: isSingle || isStart || isEnd ? '0 1px 2px rgba(0,0,0,0.2)' : 'none'
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -1,96 +1,131 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
+import { CheckCircle2, Circle, Sparkles, X, Calendar as CalendarIcon } from 'lucide-react';
 
-const NotesSidebar = ({ activeDate, notes, saveNote }) => {
-  const [text, setText] = useState('');
-  const textareaRef = useRef(null);
-  const isInitialMount = useRef(true); // To prevent saving on the very first load
-  const dateKey = activeDate ? format(activeDate, 'yyyy-MM-dd') : null;
-
-  const LINE_HEIGHT = 28; 
-  const INITIAL_LINES = 2;
-
-  // 1. Load existing note when date changes
-  useEffect(() => {
-    isInitialMount.current = true; // Block the auto-save for the initial data load
-    setText(dateKey && notes[dateKey] ? notes[dateKey] : '');
-  }, [dateKey, notes]);
-
-  // 2. AUTO-SAVE LOGIC (Debounced)
-  useEffect(() => {
-    // If it's just the initial load of the component or date switch, don't save yet
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
+const NotesSidebar = ({ 
+  activeDate, 
+  tasks, 
+  toggleTask, 
+  deleteTask, 
+  newTask, 
+  setNewTask, 
+  addTask,
+  theme,
+  onDateSelect ,
+  thought
+}) => {
+  const handleDateChange = (e) => {
+    if (e.target.value && onDateSelect) {
+      const [year, month, day] = e.target.value.split('-');
+      const newDate = new Date(year, month - 1, day);
+      onDateSelect(newDate);
     }
-
-    // Set a timer to save after 800ms of no typing
-    const saveTimer = setTimeout(() => {
-      if (dateKey) {
-        saveNote(dateKey, text);
-        console.log(`Auto-saved note for ${dateKey}`);
-      }
-    }, 800);
-
-    // If the user types again before 800ms is up, clear the previous timer and start over
-    return () => clearTimeout(saveTimer);
-  }, [text, dateKey, saveNote]);
-
-  // 3. Auto-resize (Grow/Shrink) Logic
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = '0px'; 
-      const contentHeight = textareaRef.current.scrollHeight;
-      const minHeight = LINE_HEIGHT * INITIAL_LINES;
-      textareaRef.current.style.height = `${Math.max(contentHeight, minHeight)}px`;
-    }
-  }, [text, activeDate]);
+  };
 
   return (
-    <div className="w-full h-full flex flex-col pt-1">
-      <div className="flex justify-between items-baseline mb-1 px-0.5">
-        <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-black/80">
-          Memos
-        </h3>
-        {activeDate && (
-          <div className="flex flex-col items-end">
-            <span className="text-[9px] text-black/30 font-bold uppercase">
-              {format(activeDate, 'MMM do')}
-            </span>
-          </div>
-        )}
-      </div>
+    <div className="w-full h-full flex flex-col gap-4 pb-2 min-h-0">
       
-      {activeDate ? (
-        <div className="flex flex-col flex-1 overflow-hidden">
-          <textarea
-            ref={textareaRef}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Write a note for today..."
-            className="w-full resize-none bg-transparent text-sm text-black/80 focus:outline-none overflow-hidden placeholder:text-black/10"
-            style={{
-              lineHeight: `${LINE_HEIGHT}px`,
-              backgroundImage: `linear-gradient(transparent, transparent ${LINE_HEIGHT - 1}px, #000000 ${LINE_HEIGHT - 1}px)`,
-              backgroundSize: `100% ${LINE_HEIGHT}px`,
-              paddingTop: '0px', 
-              paddingBottom: '0px',
-              minHeight: `${LINE_HEIGHT * INITIAL_LINES}px`
-            }}
+      {/* 1. DATE SELECTOR */}
+      <div className="flex-shrink-0">
+        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">
+          Jump to Date
+        </label>
+        <div 
+          className="flex items-center gap-2 p-2 rounded-lg border transition-colors focus-within:bg-white"
+          style={{ 
+            backgroundColor: `${theme.primaryHex}08`, 
+            borderColor: `${theme.primaryHex}30` 
+          }}
+        >
+          <CalendarIcon size={16} style={{ color: theme.primaryHex }} />
+          <input
+            type="date"
+            value={activeDate ? format(activeDate, 'yyyy-MM-dd') : ''}
+            onChange={handleDateChange}
+            className="w-full bg-transparent text-[13px] font-semibold text-slate-700 focus:outline-none cursor-pointer"
+            style={{ color: theme.primaryHex }}
           />
         </div>
-      ) : (
-        <div className="flex-1 flex flex-col">
-          <div 
-            className="w-full opacity-10" 
-            style={{
-              height: `${LINE_HEIGHT * INITIAL_LINES}px`,
-              backgroundImage: `linear-gradient(transparent, transparent ${LINE_HEIGHT - 1}px, #000000 ${LINE_HEIGHT - 1}px)`,
-              backgroundSize: `100% ${LINE_HEIGHT}px`,
-            }}
-          ></div>
+      </div>
+
+      {/* 2. Daily Spark */}
+      <div 
+        className="p-4 rounded-lg border shadow-sm flex-shrink-0"
+        style={{ 
+          backgroundColor: `${theme.primaryHex}08`,
+          borderColor: `${theme.primaryHex}20`
+        }}
+      >
+        <div className="flex items-center gap-2 mb-2" style={{ color: theme.primaryHex }}>
+          <Sparkles size={16} className="flex-shrink-0" />
+          <span className="text-[11px] font-black uppercase tracking-widest">Daily Spark</span>
         </div>
-      )}
+        <p className="text-[12px] italic text-slate-700 font-medium leading-relaxed">"{thought}"</p>
+      </div>
+
+      {/* 3. Tasks Section - Now takes up remaining space */}
+      <div className="flex-1 flex flex-col min-h-0">
+        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-slate-800 flex items-center gap-1 flex-shrink-0">
+          <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: `${theme.primaryHex}20` }}>
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: theme.primaryHex }}></div>
+          </div>
+          Tasks
+        </h3>
+        <div className="flex-1 overflow-y-auto pr-2 custom-memo-scroll mt-2">
+          {tasks.length === 0 ? (
+            <p className="text-[11px] text-slate-500 italic px-2">No tasks yet</p>
+          ) : (
+            tasks.map(task => (
+              <div key={task.id} className="flex items-center gap-2.5 group p-2 rounded hover:bg-slate-100 transition-colors">
+                <div onClick={() => toggleTask(task.id)} className="flex items-center gap-2.5 cursor-pointer flex-1">
+                  {task.done ? (
+                    <CheckCircle2 size={16} className="flex-shrink-0" color={theme.primaryHex} />
+                  ) : (
+                    <Circle size={16} className="text-slate-500 group-hover:text-slate-400 flex-shrink-0" />
+                  )}
+                  <span className={`text-[12px] ${task.done ? 'line-through text-slate-400' : 'text-slate-700 group-hover:text-slate-900'}`}>
+                    {task.text}
+                  </span>
+                </div>
+                <button
+                  onClick={() => deleteTask(task.id)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 text-slate-500 hover:text-red-500 ml-auto"
+                  title="Delete task"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+        <input 
+          type="text" 
+          value={newTask}
+          onChange={(e) => setNewTask(e.target.value)}
+          onKeyDown={addTask}
+          placeholder="+ Add a task..."
+          className="w-full flex-shrink-0 text-[12px] text-black font-semibold border-b py-2.5 px-2 rounded-t focus:outline-none placeholder:text-slate-500 mt-0.5 transition-colors bg-transparent"
+          style={{ 
+            borderBottomColor: `${theme.primaryHex}33`
+          }}
+        />
+      </div>
+      
+      {/* DYNAMIC SCROLLBAR CSS */}
+      <style>{`
+        .custom-memo-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-memo-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-memo-scroll::-webkit-scrollbar-thumb {
+          background: ${theme.primaryHex};
+          border-radius: 10px;
+          opacity: 0.4;
+        }
+        .custom-memo-scroll::-webkit-scrollbar-thumb:hover { opacity: 0.7; }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer; opacity: 0.6; transition: 0.2s;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+      `}</style>
     </div>
   );
 };
