@@ -325,11 +325,23 @@ export const DAILY_SPARKS = [
 ];
 
 export const getSparkForDate = (date) => {
+  // 1. Get Today's date with time stripped for accurate comparison
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const targetDate = new Date(date);
+  targetDate.setHours(0, 0, 0, 0);
+
+  // 2. Return placeholder for future dates
+  if (targetDate > today) {
+    return "The future is still being coded.";
+  }
+
+  // 3. Calculation for past/current days
   const start = new Date(date.getFullYear(), 0, 0);
   const diff = date - start;
   const oneDay = 1000 * 60 * 60 * 24;
   const dayOfYear = Math.floor(diff / oneDay);
   
-  // Use modulo to wrap around if array is shorter than 366
   return DAILY_SPARKS[dayOfYear % DAILY_SPARKS.length];
 };
