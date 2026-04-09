@@ -1,37 +1,33 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 
 export const useNotes = () => {
-  const [notes, setNotes] = useState({});
-
-  // Load notes from local storage on initial mount
-  useEffect(() => {
-    const savedNotes = localStorage.getItem('calendar_notes');
-    if (savedNotes) {
-      try {
-        setNotes(JSON.parse(savedNotes));
-      } catch (error) {
-        console.error("Failed to parse notes from local storage", error);
-      }
+  // 1. Load initial notes from Local Storage when the app starts
+  const [notes, setNotes] = useState(() => {
+    try {
+      const savedNotes = localStorage.getItem('calendar-daily-memos');
+      return savedNotes ? JSON.parse(savedNotes) : {};
+    } catch (error) {
+      console.error("Error loading notes from local storage", error);
+      return {};
     }
+  });
+
+  // 2. Save note to state AND Local Storage
+  const saveNote = useCallback((dateKey, text) => {
+    setNotes((prevNotes) => {
+      // If the text is empty, you might want to delete the key to save space, 
+      // but keeping it as an empty string is also fine.
+      const updatedNotes = {
+        ...prevNotes,
+        [dateKey]: text
+      };
+      
+      // Write the updated object to the browser's Local Storage
+      localStorage.setItem('calendar-daily-memos', JSON.stringify(updatedNotes));
+      
+      return updatedNotes;
+    });
   }, []);
 
-  // Save a note for a specific date (dateKey format: 'YYYY-MM-DD')
-  const saveNote = (dateKey, text) => {
-    const updatedNotes = {
-      ...notes,
-      [dateKey]: text
-    };
-    setNotes(updatedNotes);
-    localStorage.setItem('calendar_notes', JSON.stringify(updatedNotes));
-  };
-
-  // Delete a note for a specific date
-  const deleteNote = (dateKey) => {
-    const updatedNotes = { ...notes };
-    delete updatedNotes[dateKey];
-    setNotes(updatedNotes);
-    localStorage.setItem('calendar_notes', JSON.stringify(updatedNotes));
-  };
-
-  return { notes, saveNote, deleteNote };
+  return { notes, saveNote };
 };
