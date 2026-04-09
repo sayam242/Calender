@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { addMonths, subMonths, format, startOfToday, eachDayOfInterval } from 'date-fns';
+import { addMonths, subMonths, format, startOfToday, eachDayOfInterval, isBefore, isAfter } from 'date-fns';
 import { getThemeForMonth } from '../../utils/constants';
 import { checkIsBefore } from '../../utils/calendar';
 import { useNotes } from '../../hooks/useNotes';
@@ -14,7 +14,6 @@ const CalendarView = () => {
   const [currentDate, setCurrentDate] = useState(today); 
   const [singleDate, setSingleDate] = useState(today);
   
-  
   const theme = getThemeForMonth(currentDate.getMonth());
   const { notes, saveNote } = useNotes();
   
@@ -24,7 +23,7 @@ const CalendarView = () => {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState('');
   const [text, setText] = useState('');
-  const [thought,setThought] = useState("");
+  const [thought, setThought] = useState("");
   
   const isInitialMount = useRef(true);
 
@@ -70,12 +69,20 @@ const CalendarView = () => {
 
   // Task Handlers
   const addTaskHandler = (e) => {
-    if (e.key === 'Enter' && newTask.trim()) {
+    // Supports both 'Enter' key from input and 'click' from the mobile button
+    if ((e.key === 'Enter' || e.type === 'click') && newTask.trim()) {
       const taskId = Date.now();
       const newTaskObj = { id: taskId, text: newTask, done: false };
       
       if (selectionRange?.start && selectionRange?.end) {
-        const datesInRange = eachDayOfInterval({ start: selectionRange.start, end: selectionRange.end });
+        // 1. Ensure safe chronological order to prevent date-fns from crashing
+        const safeStart = isBefore(selectionRange.start, selectionRange.end) ? selectionRange.start : selectionRange.end;
+        const safeEnd = isAfter(selectionRange.end, selectionRange.start) ? selectionRange.end : selectionRange.start;
+
+        // 2. Generate an array of EVERY day in that interval
+        const datesInRange = eachDayOfInterval({ start: safeStart, end: safeEnd });
+        
+        // 3. Loop through every single day and push the task into LocalStorage
         datesInRange.forEach(date => {
           const key = format(date, 'yyyy-MM-dd');
           const existingTasks = localStorage.getItem(`tasks-${key}`);
@@ -83,12 +90,17 @@ const CalendarView = () => {
           tasksArray.push(newTaskObj);
           localStorage.setItem(`tasks-${key}`, JSON.stringify(tasksArray));
         });
+        
+        // Update current UI state if viewing one of the dates
         if (dateKey) setTasks(prev => [...prev, newTaskObj]);
+        
       } else if (dateKey) {
+        // Single day logic
         const updated = [...tasks, newTaskObj];
         setTasks(updated);
         localStorage.setItem(`tasks-${dateKey}`, JSON.stringify(updated));
       }
+      
       setNewTask('');
     }
   };
@@ -131,7 +143,7 @@ const CalendarView = () => {
     prevMonth, nextMonth
   };
 
-const dashboardProps = {
+  const dashboardProps = {
     activeDate: activeNoteDate, 
     text, 
     setText, 
@@ -143,19 +155,13 @@ const dashboardProps = {
     setNewTask, 
     addTask: addTaskHandler, 
     theme,
-    // NEW: Add this line so the sidebar can control the calendar!
     onDateSelect: (newDate) => {
-      setCurrentDate(newDate); // Shifts the whole calendar to that month
-      handleDayClick(newDate, false); // Selects the specific day
+      setCurrentDate(newDate); 
+      handleDayClick(newDate, false); 
     }
   };  
 
   return (
-    /* THE FIX: 
-      Changed to min-h-screen, items-center, justify-center, relative, and added padding.
-      This ensures the jagged calendar body AND its floating shards stay perfectly centered 
-      and don't clip off the edges of the monitor.
-    */
     <div className="w-full min-h-screen flex items-center justify-center relative p-4 md:p-8">
       <DesktopView calendarProps={calendarProps} dashboardProps={dashboardProps}/>
       <MobileView calendarProps={calendarProps} dashboardProps={dashboardProps}/>
