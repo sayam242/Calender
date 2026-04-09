@@ -238,7 +238,7 @@ const MobileView = ({ calendarProps, dashboardProps }) => {
         {/* ===== EXTREME TOP-LEFT SHARD (ABSOLUTE) ===== */}
         {/* Shard Glow */}
         <div 
-          className="absolute z-20 top-[30px] left-[-6px] w-[180px] h-[100px] blur-2xl opacity-40 transition-colors duration-1000 pointer-events-none"
+          className="absolute z-20 top-[80px] left-[-6px] w-[180px] h-[60px] blur-2xl opacity-40 transition-colors duration-1000 pointer-events-none"
           style={{ backgroundColor: theme.primaryHex }}
         ></div>
 
