@@ -13,11 +13,28 @@ const DesktopView = ({ calendarProps, dashboardProps }) => {
   return (
     <div className="hidden lg:flex flex-col items-center justify-center w-full h-full relative">
       
-      {/* 1. MAIN GEOMETRIC BODY 
-          FIX: Height is now variable (85vh with a min of 620px) to perfectly fit laptop screens 
-      */}
+      {/* --- WALL HANGING HARDWARE --- */}
+      <div className="flex flex-col items-center w-full mb-[-12px] z-30 pointer-events-none">
+        {/* The Wall Hook */}
+        <div className="w-3 h-3 rounded-full border-2 border-slate-400 bg-slate-800 shadow-lg relative">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-slate-900 rounded-full"></div>
+        </div>
+        
+        {/* The Hanging Cord/Hanger */}
+        <div className="w-8 h-4 border-t-2 border-l-2 border-r-2 border-slate-400 rounded-t-full mb-[-4px]"></div>
+
+        {/* Spiral Binding Wire */}
+        <div className="flex gap-1 px-3 py-1 bg-slate-800 rounded-full shadow-md z-40 border border-slate-700">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="w-1.5 h-3 bg-gradient-to-b from-slate-600 via-slate-400 to-slate-700 rounded-full border border-slate-900/20"></div>
+          ))}
+        </div>
+      </div>
+      {/* --- END WALL HANGING HARDWARE --- */}
+
+      {/* 1. MAIN GEOMETRIC BODY */}
       <div 
-        className="w-[min(650px,90vw)] h-[85vh] min-h-[620px] xl:h-[min(820px,85vh)] flex flex-col relative transition-all duration-500 z-10 shadow-2xl zig-zag-edges"
+        className="w-[min(650px,90vw)] h-[85vh] min-h-[620px] xl:h-[min(820px,85vh)] min-[2500px]:w-[min(1000px,90vw)] min-[2500px]:h-[min(1200px,85vh)] flex flex-col relative transition-all duration-500 z-10 shadow-2xl zig-zag-edges"
         style={{ 
           backgroundColor: '#f8fafc',
           borderTop: `6px solid ${theme.primaryHex}`,
@@ -48,34 +65,32 @@ const DesktopView = ({ calendarProps, dashboardProps }) => {
         <div className="w-full flex-1 flex flex-col px-[6%] pb-[4%] min-h-0 relative z-10">
           
           {/* Top Row: Calendar (Left) & Sidebar (Right) */}
-          <div className="w-full flex-1 flex flex-row items-stretch gap-[5%] min-h-0">
+          <div className="w-full flex-1 flex flex-row items-stretch gap-[4%] lg:gap-[5%] min-h-0">
             
-            {/* Calendar Column 
-                FIX: Scaled down top padding for laptops, original padding for xl monitors 
-            */}
-            <div className="w-[55%] flex flex-col min-h-0 pt-[140px] xl:pt-[200px] transition-all">
-              <div className="flex-1 min-h-0">
+            {/* Calendar Column */}
+            <div className="w-[55%] flex flex-col min-h-0 pt-[140px] xl:pt-[180px] 2xl:pt-[220px] min-[2500px]:pt-[300px] transition-all">
+              <div className="flex-1 min-h-0 flex flex-col justify-center">
                 <CalendarGrid currentDate={currentDate} theme={theme} {...gridProps} />
               </div>
             </div>
 
             {/* Vertical Divider */}
             <div 
-              className="w-[1px] flex-shrink-0 mt-[80px] xl:mt-[120px] mb-2 transition-all" 
+              className="w-[1px] flex-shrink-0 mt-[90px] xl:mt-[120px] 2xl:mt-[150px] min-[2500px]:mt-[200px] mb-2 transition-all" 
               style={{ background: `linear-gradient(to bottom, transparent, ${theme.primaryHex}40, transparent)` }}
             ></div>
 
             {/* Notes Sidebar Column (Tasks & Jump to Date) */}
-            <div className="w-[45%] flex flex-col min-h-0 pt-[80px] xl:pt-[120px] transition-all">
-              <NotesSidebar {...dashboardProps} />
+            <div className="w-[45%] flex flex-col min-h-0 pt-[70px] xl:pt-[100px] 2xl:pt-[140px] min-[2500px]:pt-[180px] transition-all">
+              <div className="flex-1 min-h-0 flex flex-col justify-start">
+                <NotesSidebar {...dashboardProps} />
+              </div>
             </div>
           </div>
 
-          {/* Bottom Row: Full-Width Memos Section 
-              FIX: Scaled down height for laptops 
-          */}
+          {/* Bottom Row: Full-Width Memos Section */}
           <div 
-            className="w-full flex-shrink-0 flex flex-col h-[120px] xl:h-[150px] mt-4 pt-4 border-t relative z-10 transition-all"
+            className="w-full flex-shrink-0 flex flex-col h-[120px] xl:h-[120px] 2xl:h-[150px] min-[2500px]:h-[220px] mt-4 pt-4 border-t relative z-10 transition-all"
             style={{ borderTopColor: `${theme.primaryHex}30` }}
           >
             <div className="flex justify-between items-baseline mb-2">
@@ -113,11 +128,9 @@ const DesktopView = ({ calendarProps, dashboardProps }) => {
         </div>
       </div>
 
-      {/* 2. EXTREME TOP-LEFT SHARD 
-          FIX: Made Shard width and height scale with viewport to prevent overlapping 
-      */}
+      {/* 2. EXTREME TOP-LEFT SHARD */}
       <div 
-        className="absolute z-20 top-[4%] left-[2%] w-[260px] xl:w-[300px] h-[130px] xl:h-[160px] blur-2xl opacity-30 transition-all duration-1000"
+        className="absolute z-20 top-[7%] left-[2%] w-[260px] xl:w-[300px] min-[2500px]:w-[380px] h-[130px] xl:h-[160px] min-[2500px]:h-[240px] min-[2500px]:top-[5%] min-[2500px]:left-[4%] blur-2xl opacity-30 transition-all duration-1000"
         style={{ 
           backgroundColor: theme.primaryHex,
           clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0 85%)'
@@ -125,7 +138,7 @@ const DesktopView = ({ calendarProps, dashboardProps }) => {
       ></div>
 
       <div 
-        className="absolute z-30 top-[2%] left-[0%] w-[min(300px,45vw)] xl:w-[min(340px,45vw)] h-[130px] xl:h-[160px] p-4 xl:p-6 bg-slate-50/90 backdrop-blur-md shadow-2xl flex flex-col justify-end transition-transform duration-500 hover:scale-[1.03]"
+        className="absolute z-20 top-[5.5%] left-[0%] w-[min(300px,45vw)] xl:w-[min(340px,45vw)] min-[2500px]:w-[min(480px,45vw)] h-[130px] xl:h-[160px] min-[2500px]:h-[240px] min-[2500px]:top-[4%] p-4 xl:p-6 min-[2500px]:p-10 bg-slate-50/90 backdrop-blur-md shadow-2xl flex flex-col justify-end transition-transform duration-500 hover:scale-[1.03]"
         style={{ 
           clipPath: 'polygon(0 0, 100% 0%, 75% 100%, 0% 85%)',
           borderLeft: `8px solid ${theme.primaryHex}`
@@ -133,7 +146,7 @@ const DesktopView = ({ calendarProps, dashboardProps }) => {
       >
         <div className="absolute top-2 left-4 flex items-center justify-center pointer-events-none select-none z-0">
           <span 
-            className="text-[5.5rem] xl:text-[7rem] font-serif font-black opacity-[0.04] tracking-tighter transition-all"
+            className="text-[5.5rem] xl:text-[7rem] min-[2500px]:text-[11rem] font-serif font-black opacity-[0.04] tracking-tighter transition-all"
             style={{ color: theme.primaryHex }}
           >
             {format(currentDate, 'MM')}
@@ -141,20 +154,20 @@ const DesktopView = ({ calendarProps, dashboardProps }) => {
         </div>
 
         <div className="text-slate-800 z-10 relative mb-2 xl:mb-4 transition-all">
-          <p className="text-[12px] xl:text-[14px] font-serif font-bold tracking-[0.3em] mb-[-4px] opacity-40">
+          <p className="text-[12px] xl:text-[14px] min-[2500px]:text-[20px] font-serif font-bold tracking-[0.3em] mb-[-4px] opacity-40">
             {format(currentDate, 'yyyy')}
           </p>
-          <h2 className="text-4xl xl:text-5xl font-serif font-black uppercase tracking-tighter leading-none transition-all">
+          <h2 className="text-4xl xl:text-5xl min-[2500px]:text-7xl font-serif font-black uppercase tracking-tighter leading-none transition-all">
             {format(currentDate, 'MMMM')}
           </h2>
-          <p className="text-[10px] xl:text-[11px] font-bold tracking-[0.2em] uppercase mt-1 xl:mt-2 transition-all" style={{ color: theme.primaryHex }}>
+          <p className="text-[10px] xl:text-[11px] min-[2500px]:text-[16px] font-bold tracking-[0.2em] uppercase mt-1 xl:mt-2 min-[2500px]:mt-4 transition-all" style={{ color: theme.primaryHex }}>
             {theme.festival || 'Season'}
           </p>
         </div>
       </div>
 
       {/* 3. NAVIGATION BUTTONS */}
-      <div className="absolute top-[8%] right-[8%] flex gap-2 z-30 group">
+      <div className="absolute top-[10%] right-[8%] flex gap-2 z-30 group min-[2500px]:scale-[1.5] origin-top-right">
         <button onClick={prevMonth} className="w-10 h-10 rounded-none bg-slate-50 hover:bg-white text-slate-800 shadow-lg border border-slate-200 flex items-center justify-center transition-all hover:-translate-x-1" style={{ clipPath: 'polygon(20% 0, 100% 0, 80% 100%, 0 100%)' }}>
           <ChevronLeft size={20} />
         </button>

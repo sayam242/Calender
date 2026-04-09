@@ -23,10 +23,31 @@ const MobileView = ({ calendarProps, dashboardProps }) => {
     /* Outer container safely handles 100dvh and prevents page scroll */
     <div className="flex lg:hidden flex-col items-center justify-center w-full h-[100dvh] relative bg-slate-900/5 overflow-hidden p-2">
       
+      
+
       {/* MAIN WRAPPER: Limits width on tablets/landscape, acts as anchor for absolute positioning.
         This keeps the shard and paper locked together perfectly.
       */}
       <div className="w-full max-w-[420px] relative flex flex-col h-full z-10 py-1">
+
+              {/* --- WALL HANGING HARDWARE --- */}
+      <div className="flex flex-col items-center w-full mb-[-12px] z-30 pointer-events-none">
+        {/* The Wall Hook */}
+        <div className="w-2 h-2 rounded-full border-2 border-slate-400 bg-slate-800 shadow-lg relative">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-slate-900 rounded-full"></div>
+        </div>
+        
+        {/* The Hanging Cord/Hanger */}
+        <div className="w-6 h-3 border-t-2 border-l-2 border-r-2 border-slate-400 rounded-t-full mb-[-4px]"></div>
+
+        {/* Spiral Binding Wire */}
+        <div className="flex gap-0.5 px-2 py-1 bg-slate-800 rounded-full shadow-md z-40 border border-slate-700">
+          {[...Array(10)].map((_, i) => (
+            <div key={i} className="w-0.5 h-2 bg-gradient-to-b from-slate-600 via-slate-400 to-slate-700 rounded-full border border-slate-900/20"></div>
+          ))}
+        </div>
+      </div>
+      {/* --- END WALL HANGING HARDWARE --- */}
 
         {/* ===== 1. MAIN PAPER BODY (Zig-Zag removed to fix padding) ===== */}
         <div 
@@ -204,13 +225,13 @@ const MobileView = ({ calendarProps, dashboardProps }) => {
         {/* ===== EXTREME TOP-LEFT SHARD (ABSOLUTE) ===== */}
         {/* Shard Glow */}
         <div 
-          className="absolute z-20 top-[-2px] left-[-6px] w-[180px] h-[100px] blur-2xl opacity-40 transition-colors duration-1000 pointer-events-none"
+          className="absolute z-20 top-[30px] left-[-6px] w-[180px] h-[100px] blur-2xl opacity-40 transition-colors duration-1000 pointer-events-none"
           style={{ backgroundColor: theme.primaryHex }}
         ></div>
 
         {/* Typographic Glass Shard */}
         <div 
-          className="absolute z-30 top-[9px] left-[0px] w-[min(260px,70vw)] h-[100px] p-3 bg-slate-50/90 backdrop-blur-md shadow-2xl flex flex-col justify-end"
+          className="absolute z-20 top-[35px] left-[0px] w-[min(260px,70vw)] h-[100px] p-3 bg-slate-50/90 backdrop-blur-md shadow-2xl flex flex-col justify-end"
           style={{ 
             clipPath: 'polygon(0 0, 100% 0%, 82% 100%, 0% 90%)',
             borderLeft: `5px solid ${theme.primaryHex}`
