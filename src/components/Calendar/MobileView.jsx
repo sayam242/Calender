@@ -169,15 +169,28 @@ const MobileView = ({ calendarProps, dashboardProps }) => {
                     ))
                   )}
                 </div>
-                <input 
-                  type="text" 
-                  value={newTask}
-                  onChange={(e) => setNewTask(e.target.value)}
-                  onKeyDown={addTask}
-                  placeholder="+ Add task"
-                  className="w-full flex-shrink-0 text-[10px] text-black font-semibold border-t pt-1.5 focus:outline-none placeholder:text-slate-500 bg-transparent transition-colors"
+                <div 
+                  className="w-full flex items-center gap-2 border-t pt-1.5 flex-shrink-0 mt-0.5"
                   style={{ borderTopColor: `${theme.primaryHex}33` }}
-                />
+                >
+                  <input 
+                    type="text" 
+                    value={newTask}
+                    onChange={(e) => setNewTask(e.target.value)}
+                    onKeyDown={addTask}
+                    placeholder="+ Add a task..."
+                    className="flex-1 min-w-0 text-[10px] text-black font-semibold focus:outline-none placeholder:text-slate-500 bg-transparent transition-colors"
+                  />
+                  
+                  {/* New Mobile Add Button */}
+                  <button
+                    onClick={() => addTask({ key: 'Enter' })} // Mimics the Enter keypress!
+                    className="px-2.5 py-1 text-[9px] tracking-wider font-bold text-white rounded shadow-sm transition-all active:scale-95"
+                    style={{ backgroundColor: theme.primaryHex }}
+                  >
+                    ADD
+                  </button>
+                </div>
               </div>
 
             {/* ===== 4. CALENDAR GRID ===== */}
