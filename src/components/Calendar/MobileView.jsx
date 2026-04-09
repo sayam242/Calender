@@ -271,7 +271,7 @@ const MobileView = ({ calendarProps, dashboardProps }) => {
         </div>
 
         {/* Navigation Buttons - Top Right (Absolute) */}
-        <div className="absolute top-[5%] right-[5%] flex gap-1 z-40">
+        <div className="absolute top-[10%] right-[2%] flex gap-1 z-40">
           <button 
             onClick={prevMonth} 
             className="w-7 h-7 bg-slate-50 hover:bg-white text-slate-800 shadow-lg border border-slate-200 flex items-center justify-center transition-all"
